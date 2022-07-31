@@ -1,0 +1,1408 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="Hexo">
+    <meta name="description" content="**项目解析*
+*概述**
+l 使用线程池+非阻塞socket+epoll（ET,LT均实现）+事件处理（reactor和proactor模式均实现）的并发模型
+l 用状态机解析http请求报文，支持解析get、post请求
+l 访问服务器">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    
+
+    <title>Hexo</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+    <link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+    <link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+    <link rel="stylesheet" type="text/css" href="/css/matery.css">
+    <link rel="stylesheet" type="text/css" href="/css/my.css">
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="/medias/logo.png" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">Hexo</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/contact" class="waves-effect waves-light">
+      
+      <i class="fas fa-comments" style="zoom: 0.6;"></i>
+      
+      <span>留言板</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友情链接</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="/medias/logo.png" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">Hexo</div>
+        <div class="logo-desc">
+            
+            Never really desperate, only the lost of the soul.
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/contact" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-comments"></i>
+			
+			留言板
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友情链接
+		</a>
+          
+        </li>
+        
+        
+        <li><div class="divider"></div></li>
+        <li>
+            <a href="https://github.com/blinkfox/hexo-theme-matery" class="waves-effect waves-light" target="_blank">
+                <i class="fab fa-github-square fa-fw"></i>Fork Me
+            </a>
+        </li>
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+            <style>
+    .nav-transparent .github-corner {
+        display: none !important;
+    }
+
+    .github-corner {
+        position: absolute;
+        z-index: 10;
+        top: 0;
+        right: 0;
+        border: 0;
+        transform: scale(1.1);
+    }
+
+    .github-corner svg {
+        color: #0f9d58;
+        fill: #fff;
+        height: 64px;
+        width: 64px;
+    }
+
+    .github-corner:hover .octo-arm {
+        animation: a 0.56s ease-in-out;
+    }
+
+    .github-corner .octo-arm {
+        animation: none;
+    }
+
+    @keyframes a {
+        0%,
+        to {
+            transform: rotate(0);
+        }
+        20%,
+        60% {
+            transform: rotate(-25deg);
+        }
+        40%,
+        80% {
+            transform: rotate(10deg);
+        }
+    }
+</style>
+
+<a href="https://github.com/blinkfox/hexo-theme-matery" class="github-corner tooltipped hide-on-med-and-down" target="_blank"
+   data-tooltip="Fork Me" data-position="left" data-delay="50">
+    <svg viewBox="0 0 250 250" aria-hidden="true">
+        <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
+        <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2"
+              fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
+        <path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z"
+              fill="currentColor" class="octo-body"></path>
+    </svg>
+</a>
+        
+    </nav>
+
+</header>
+
+    
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/0.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title"></h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+<style>
+    #articleContent h1::before,
+    #articleContent h2::before,
+    #articleContent h3::before,
+    #articleContent h4::before,
+    #articleContent h5::before,
+    #articleContent h6::before {
+        display: block;
+        content: " ";
+        height: 100px;
+        margin-top: -100px;
+        visibility: hidden;
+    }
+
+    #articleContent :focus {
+        outline: none;
+    }
+
+    .toc-fixed {
+        position: fixed;
+        top: 64px;
+    }
+
+    .toc-widget {
+        width: 345px;
+        padding-left: 20px;
+    }
+
+    .toc-widget .toc-title {
+        padding: 35px 0 15px 17px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        line-height: 1.5rem;
+    }
+
+    .toc-widget ol {
+        padding: 0;
+        list-style: none;
+    }
+
+    #toc-content {
+        padding-bottom: 30px;
+        overflow: auto;
+    }
+
+    #toc-content ol {
+        padding-left: 10px;
+    }
+
+    #toc-content ol li {
+        padding-left: 10px;
+    }
+
+    #toc-content .toc-link:hover {
+        color: #42b983;
+        font-weight: 700;
+        text-decoration: underline;
+    }
+
+    #toc-content .toc-link::before {
+        background-color: transparent;
+        max-height: 25px;
+
+        position: absolute;
+        right: 23.5vw;
+        display: block;
+    }
+
+    #toc-content .is-active-link {
+        color: #42b983;
+    }
+
+    #floating-toc-btn {
+        position: fixed;
+        right: 15px;
+        bottom: 76px;
+        padding-top: 15px;
+        margin-bottom: 0;
+        z-index: 998;
+    }
+
+    #floating-toc-btn .btn-floating {
+        width: 48px;
+        height: 48px;
+    }
+
+    #floating-toc-btn .btn-floating i {
+        line-height: 48px;
+        font-size: 1.4rem;
+    }
+</style>
+<div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                          <div class="article-tag">
+                            <span class="chip bg-color">无标签</span>
+                          </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2022-07-31
+                </div>
+                
+
+                
+
+                
+
+                
+
+                
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <p>*<strong>*<em>项目解析*</em></strong></p>
+<p><em><strong>*概述*</strong></em>*</p>
+<p>l 使用线程池+非阻塞socket+epoll（ET,LT均实现）+事件处理（reactor和proactor模式均实现）的并发模型</p>
+<p>l 用状态机解析http请求报文，支持解析get、post请求</p>
+<p>l 访问服务器数据库实现web端用户注册及登录功能，可以请求服务器图片和视频文件</p>
+<p>l 实现了同步&#x2F;异步日志系统，记录服务器运行状态</p>
+<p>l 经webbench压力测试可以实现上万的并发连接数据交换</p>
+<h1 id="框架"><a href="#框架" class="headerlink" title="*框架*"></a><strong>*框架*</strong></h1><p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps1.jpg" alt="img"> </p>
+<h1 id="线程池"><a href="#线程池" class="headerlink" title="*线程池*"></a><em><strong>*线程池*</strong></em></h1><p>包括（任务队列，线程），（互斥锁和信号量维护队列），封装了生产消费者模型，有任务进入任务队列即生产者产生了数据，随后消费者也就是工作线程，取走任务，根据不同任务类型执行不同工作</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps2.jpg" alt="img"> </p>
+<h1 id="web服务器接收客户端发来的HTTP请求报文"><a href="#web服务器接收客户端发来的HTTP请求报文" class="headerlink" title="*web服务器接收客户端发来的HTTP请求报文*"></a><em><strong>*web服务器接收客户端发来的HTTP请求报文*</strong></em></h1><p>web服务器通过socket来监听用户的请求</p>
+<p>客户端会尝试connec服务器上正在listen的端口，服务器监听到了以后会让这些连接排队	等待被accept。</p>
+<p>用户连接的请求是随即到达异步请求，所以每当监听到socket（listenfd）时，会将其放入监听队列表示告诉web服务器有链接来了需要处理，服务器接受连接，分配逻辑单元（工作线程）来处理（使用线程池实现的并发）。</p>
+<p>服务器使用的是I&#x2F;O复用中的epoll实现对socket（listenfd）和连接socket（用户请求）同时监听。   因为epoll（非同步阻塞），select（同步阻塞），poll（同步阻塞）都是阻塞的，为了提高效率需要通过线程池来实现多线程并发，使每个就绪的文件描述符都分配到一个逻辑单元来处理。</p>
+<p>服务器程序通常需要处理三类事件：I&#x2F;O事件，信号以及定时器事件，有三种模式来处理事件：</p>
+<p>Reactor模式：主线程（I&#x2F;O处理单元）只负责监听文件描述符上有没有事件发生，有的话通知工作线程（也就是逻辑单元）去处理，除此之外主线程不做其他工作，接受链接处理客户请求，读写数据都在工作线程中完成。</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps3.jpg" alt="img"> </p>
+<p>Proactor模式：</p>
+<p>将所有I&#x2F;O操作都交给主线程和内核去处理，工作线程只处理业务逻辑。</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps4.jpg" alt="img"> </p>
+<p>模拟proactor模式</p>
+<p>可以用同步I&#x2F;O模拟出proactor模式：主线程执行读写操作，读写完成以后，主线程向工作线程通知处理完成事件，工作线程获得了数据读写结果，开始对读写结果进行逻辑处理。</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps5.jpg" alt="img"> </p>
+<p>本项目中使用epoll而不是select，poll的原因</p>
+<p>l 对于select和poll来说，所有文件描述符都是在用户态被加入其文件描述符集合的，每次调用都需要将整个集合拷贝到内核态；epoll则将整个文件描述符集合维护在内核态，每次添加文件描述符的时候都需要执行一个系统调用。系统调用的开销是很大的，而且在有很多短期活跃连接的情况下，epoll可能会慢于select和poll由于这些大量的系统调用开销。</p>
+<p>l select使用线性表描述文件描述符集合，文件描述符有上限；poll使用链表来描述；epoll底层通过红黑树来描述，并且维护一个ready list，将事件表中已经就绪的事件添加到这里，在使用epoll_wait调用时，仅观察这个list中有没有数据即可。</p>
+<p>l select和poll的最大开销来自内核判断是否有文件描述符就绪这一过程：每次执行select或poll调用时，它们会采用遍历的方式，遍历整个文件描述符集合去判断各个文件描述符是否有活动；epoll则不需要去以这种方式检查，当有活动产生时，会自动触发epoll回调函数通知epoll文件描述符，然后内核将这些就绪的文件描述符放到之前提到的ready list中等待epoll_wait调用后被处理。</p>
+<p>l select和poll都只能工作在相对低效的LT模式下，而epoll同时支持LT和ET模式。</p>
+<p>l 综上，当监测的fd数量较小，且各个fd都很活跃的情况下，建议使用select和poll；当监听的fd数量较多，且单位时间仅部分fd活跃的情况下，使用epoll会明显提升性能。</p>
+<h1 id="web服务器对HTTP请求报文处理及响应"><a href="#web服务器对HTTP请求报文处理及响应" class="headerlink" title="*web服务器对HTTP请求报文处理及响应*"></a><em><strong>*web服务器对HTTP请求报文处理及响应*</strong></em></h1><p>epollwait发现accept接受并返回的文件描述符connfd上面有事件可读，主线程就把HTTP的请求报文读进socket的读缓存中，然后将这个任务对象（指针）插入线程池的请求队列中，为了实现线程同步，还需要依靠锁机制和信号量，保证操作的原子性。</p>
+<h1 id="状态机对HTTP请求的处理"><a href="#状态机对HTTP请求的处理" class="headerlink" title="*状态机对HTTP请求的处理*"></a><em><strong>*状态机对HTTP请求的处理*</strong></em></h1><p>HTTP请求由 请求行(request line)，请求头部(header)，空行，请求数据四部分组成。</p>
+<p>请求报文有两种分别为GET和POST，对两种报文进行不同的解析，了解用户的请求内容，根据请求返回相应的HTML页面等。对不同部分的解析使用的是主从状态机模式进行解析主状态机从内部调用从状态机，从状态机驱动主状态机。每解析一部分就将状态改变，来完成状态机的解析跳转。</p>
+<p>最后得到了一个完整的HTTP请求</p>
+<h1 id="GET、POST是怎么来的"><a href="#GET、POST是怎么来的" class="headerlink" title="*GET、POST是怎么来的*"></a><em><strong>*GET、POST是怎么来的*</strong></em></h1><p>搭建好服务器在本地浏览器输入192.168.2.200：9000，并且回车，这时候就是给服务器发送了一个GET请求。服务器解析这个HTTP请求，发现是GET请求，于是返回一个静态的HTML页面。页面中包含一这些可点击的button(按钮)，如注册、登录等点击button时浏览器就会向服务区发送一个POST请求服务器通过action判断这个post请求是什么，做出不同相应。</p>
+<h1 id="数据库连接池的运行"><a href="#数据库连接池的运行" class="headerlink" title="*数据库连接池的运行*"></a><em><strong>*数据库连接池的运行*</strong></em></h1><p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps6.jpg" alt="img"> </p>
+<h1 id="CGI校验"><a href="#CGI校验" class="headerlink" title="*CGI校验*"></a><em><strong>*CGI校验*</strong></em></h1><p>CGI（通用网关接口）是一个运行在web服务器上的程序，在编译时将对应的。cpp文件编程成.cgi文件，并在主程序中调用。cgi程序通常通过客户端在浏览器上点击一个button时运行，这些程序通常用来执行一些信息搜索，储存等任务。最后会生成一个HTML网页来响应客户端HTTP请求。<img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps7.jpg" alt="img"></p>
+<h1 id="生成HTTP响应并返回给用户"><a href="#生成HTTP响应并返回给用户" class="headerlink" title="*生成HTTP响应并返回给用户*"></a><em><strong>*生成HTTP响应并返回给用户*</strong></em></h1><p>对读到的请求做好了处理后根据process_read的返回结果判断应该返回给用户什么响应。假如用户请求的文件已经存在，那么我们就做写操作，将connfd写到写缓存m_write_buf中去。</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps8.jpg" alt="img"> </p>
+<h1 id="定时器处理非活动链接"><a href="#定时器处理非活动链接" class="headerlink" title="*定时器处理非活动链接*"></a><em><strong>*定时器处理非活动链接*</strong></em></h1><p>如果一些用户连接到服务器后，一直占用着文件描述符，导致链接资源的浪费，所以可以加入定时器定时释放掉非活动链接，关闭他们占用的文件描述符。</p>
+<p>本项目主要使用SIGALRM信号来实现定时器，alarm周期性的触犯信号，信号处理函数利用管道通知主循环，主循环接受到该信号后对升序链表上所有定时器进行处理，处理方式为每次检测文件描述符是否超时，超时的话把它前面的所有文件描述符都注销。</p>
+<h1 id="日志系统"><a href="#日志系统" class="headerlink" title="*日志系统*"></a><em><strong>*日志系统*</strong></em></h1><p>同步&#x2F;异步日志系统主要涉及了两个模块，一个是日志模块，一个是阻塞队列模块,其中加入阻塞队列模块主要是解决异步写入日志做准备.</p>
+<p>用的是单例模式创建日志系统，对服务器运行状态、错误信息和访问数据进行记录，该系统可以实现按天分类，超行分类功能，可以根据实际情况分别使用同步和异步写入两种方式。</p>
+<p>异步写入方式的话，将生产者-消费者模型封装为阻塞队列，创建一个写线程，工作线程将要写的内容push进队列，写线程从队列中取出内容，写入日志文件。</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps9.jpg" alt="img"> </p>
+<p>单例模式的实现：私有化它的构造函数，以防止外界创建单例类的对象；使用类的私有静态指针变量指向类的唯一实例，并用一个公有的静态方法获取该实例。</p>
+<p>单例模式有两种实现方法，分别是懒汉和饿汉模式。顾名思义，懒汉模式，即非常懒，不用的时候不去初始化，所以在第一次被使用时才进行初始化；饿汉模式，即迫不及待，在程序运行时立即初始化。Debug，调试代码时的输出，在系统实际运行时，一般不使用。Info，报告系统当前的状态，当前执行的流程或接收的信息等。和error三种。</p>
+<p><strong>日志的分级本项目主要</strong></p>
+<h3 id="懒汉模式的实现"><a href="#懒汉模式的实现" class="headerlink" title="*懒汉模式的实现*"></a><em><strong>*懒汉模式的实现*</strong></em></h3><p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps10.jpg" alt="img"> </p>
+<h3 id="饿汉模式的实现"><a href="#饿汉模式的实现" class="headerlink" title="*饿汉模式的实现*"></a><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps11.jpg" alt="img"><em><strong>*饿汉模式的实现*</strong></em></h3><h3 id="v阻塞队列内容"><a href="#v阻塞队列内容" class="headerlink" title="*v阻塞队列内容*"></a><em><strong>*v阻塞队列内容*</strong></em></h3><p>阻塞队列内部封装了生产消费者模型，使用了循环数组实现了队列，作为两者共享缓冲区，队列也可以使用STL中的queue。</p>
+<p>当队列为空时，从队列中获取元素的线程将会被挂起；当队列是满时，往队列里添加元素的线程将会挂起。</p>
+<h1 id="压力测试"><a href="#压力测试" class="headerlink" title="*压力测试*"></a><em><strong>*压力测试*</strong></em></h1><p><strong>使用webbench测试</strong></p>
+<p>一个服务器项目，你在本地浏览器键入</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps12.png" alt="img"></p>
+<p>发现可以运行无异常还不够，你需要对他进行压测（即服务器并发量测试），压测过了，才说明你的服务器比较稳定了。社长的项目是如何压测的呢？</p>
+<p>用到了一个压测软件叫做Webbench，</p>
+<table>
+<thead>
+<tr>
+<th>1</th>
+<th>.&#x2F;webbench -c 10001 -t 5 <a target="_blank" rel="noopener" href="http://127.0.0.1:9006/">http://127.0.0.1:9006/</a></th>
+</tr>
+</thead>
+<tbody><tr>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p>直接解压的</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps13.png" alt="img"></p>
+<p>文件夹下的</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps14.png" alt="img"></p>
+<p>文件可能会因为权限问题找不到命令或者无法执行，这时你需要重新编译一下该文件即可：</p>
+<table>
+<thead>
+<tr>
+<th>1</th>
+<th>gcc webbench.c -o webbench</th>
+</tr>
+</thead>
+<tbody><tr>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps15.jpg" alt="img"> </p>
+<p><strong>Webbench是什么，介绍一下原理</strong></p>
+<p>父进程fork若干个子进程，每个子进程在用户要求时间或默认的时间内对目标web循环发出实际访问请求，父子进程通过管道进行通信，子进程通过管道写端向父进程传递在若干次请求访问完毕后记录到的总信息，父进程通过管道读端读取子进程发来的相关信息，子进程在时间到后结束，父进程在所有子进程退出后统计并给用户显示最后的测试结果，然后退出。</p>
+<h1 id="并发模型"><a href="#并发模型" class="headerlink" title="*并发模型*"></a><em><strong>*并发模型*</strong></em></h1><p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps16.jpg" alt="img"> </p>
+<h1 id="项目文件内容v"><a href="#项目文件内容v" class="headerlink" title="*项目文件内容v*"></a><em><strong>*项目文件内容v*</strong></em></h1><h2 id="locker-h"><a href="#locker-h" class="headerlink" title="*locker.h*"></a><em><strong>*locker.h*</strong></em></h2><p>包含了对信号量、条件变量、互斥量三种锁进行封装的类，并且锁的创建和销毁封装在类的构造与析构函数中，实现了RAII机制，将锁与创建的对象的生命周期绑定。</p>
+<h2 id="threadpool-h"><a href="#threadpool-h" class="headerlink" title="*threadpool.h*"></a><em><strong>*threadpool.h*</strong></em></h2><p>l 空间换时间,浪费服务器的硬件资源,换取运行效率.</p>
+<p>l 池是一组资源的集合,这组资源在服务器启动之初就被完全创建好并初始化,这称为静态资源.</p>
+<p>l 当服务器进入正式运行阶段,开始处理客户请求的时候,如果它需要相关的资源,可以直接从池中获取,无需动态分配.</p>
+<p>l 当服务器处理完一个客户连接后,可以把相关的资源放回池中,无需执行系统调用释放资源.</p>
+<p>线程池设计为半同步，半反应堆。</p>
+<p>封装了</p>
+<p><strong>threadpoll类</strong>：对线程池的定义</p>
+<p><strong>线程池的创建与回收</strong> ：pthread_create函数中将类的对象作为参数传递给静态函数(worker),在静态函数中引用这个对象,并调用其动态方法(run)。</p>
+<p><strong>向请求队列中添加任务</strong>：请求队列通过list创建并且需要互斥锁来保证线程安全</p>
+<p><strong>线程处理函数：</strong>主要是内部访问私有成员函数run，完成线程处理要求</p>
+<p><strong>run执行任务：</strong>m_stop控制是否结束函数，首先信号量等待，被唤醒后先添加互斥锁，然后从请求队列中取出第一个任务，处理后，将任务从请求队列中删除。</p>
+<h1 id="各模块介绍"><a href="#各模块介绍" class="headerlink" title="*各模块介绍*"></a><em><strong>*各模块介绍*</strong></em></h1><h2 id="数据库方面-CGImysql"><a href="#数据库方面-CGImysql" class="headerlink" title="*数据库方面 CGImysql*"></a><em><strong>*数据库方面 CGImysql*</strong></em></h2><h3 id="sql-connection-pool-h"><a href="#sql-connection-pool-h" class="headerlink" title="*sql_connection_pool.h*"></a><em><strong>*sql_connection_pool.h*</strong></em></h3><p>定义了一个连接池的类，内部函数</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps17.jpg" alt="img"> </p>
+<h3 id="sql-connection-pool-cpp"><a href="#sql-connection-pool-cpp" class="headerlink" title="*sql_connection_pool.cpp*"></a><em><strong>*sql_connection_pool.cpp*</strong></em></h3><h2 id="http"><a href="#http" class="headerlink" title="*http*"></a><em><strong>*http*</strong></em></h2><p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps18.jpg" alt="img"> </p>
+<h3 id="http-conn-h"><a href="#http-conn-h" class="headerlink" title="*http_conn.h*"></a><em><strong>*http_conn.h*</strong></em></h3><h3 id="http-conn-cpp"><a href="#http-conn-cpp" class="headerlink" title="*http_conn.cpp*"></a><em><strong>*http_conn.cpp*</strong></em></h3><h2 id="lock-h"><a href="#lock-h" class="headerlink" title="*lock.h*"></a><em><strong>*lock.h*</strong></em></h2><p>把信号量条件变量，互斥量都封装成类，构造函数初始化，析构函数释放，以及lock、unlock函数对应加锁。</p>
+<h2 id="日志模块-log"><a href="#日志模块-log" class="headerlink" title="*日志模块 log*"></a><em><strong>*日志模块 log*</strong></em></h2><h3 id="block-queue-h"><a href="#block-queue-h" class="headerlink" title="*block_queue.h*"></a><em><strong>*block_queue.h*</strong></em></h3><p>加入阻塞队列模块主要是解决异步写入日志做准备.</p>
+<p>阻塞队列主要是用一个循环数组实现的m_back &#x3D; (m_back + 1) % m_max_size; </p>
+<p>每个操作前都要先加互斥锁，操作完后，再解锁，保证了他的线程安全</p>
+<h3 id="log-h"><a href="#log-h" class="headerlink" title="*log.h*"></a><em><strong>*log.h*</strong></em></h3><p>构造函数设置为私有共有的静态函数调用私有构造函数，调用函数从阻塞队列取出一个日志string，写入文件。</p>
+<h3 id="log-cpp"><a href="#log-cpp" class="headerlink" title="*log.cpp*"></a><em><strong>*log.cpp*</strong></em></h3><p><strong>1.init</strong>时判断同步异步，如果设置了阻塞队列的长度就是异步，异步的话就创建一个阻塞队列和一个线程调用单例模式生成日志文件；</p>
+<p>开辟一个缓冲区，将缓冲区中的内容全部置为&#x2F;0；</p>
+<p>tm结构体可以获取系统的年月日时间，用snprintf按照指定格式将时间拷贝到名字中，完成对日志的初始化。</p>
+<p><strong>2.****:write_log(int level, const char *format, …)</strong> 分为debug，info，warn，erro，这些状态。每写入一个log，就对行数进行一个++操作，接着就是基础的按天分类和按行分类的实现。</p>
+<h2 id="root"><a href="#root" class="headerlink" title="*root*"></a><em><strong>*root*</strong></em></h2><h2 id="压力测试test-presure"><a href="#压力测试test-presure" class="headerlink" title="*压力测试test_presure*"></a><em><strong>*压力测试test_presure*</strong></em></h2><h2 id="线程池-threadpool-h"><a href="#线程池-threadpool-h" class="headerlink" title="*线程池 threadpool.h*"></a><em><strong>*线程池 threadpool.h*</strong></em></h2><p>构造函数开辟大小为线程池中线程数的数组，创建线程，析构函数释放。里面封装了run（）函数处理请求队列任务，定义了队头front，队尾back初始化是-1，和当前队列大小。也封装了push &#x2F;&#x2F;往队列添加元素，需要将所有使用队列的线程先唤醒&#x2F;&#x2F;当有元素push进队列,相当于生产者生产了一个元素   &#x2F;&#x2F;若当前没有线程等待条件变量,则唤醒无意义。pop：如果队列没有元素，会等待条件变量，为了防止一直等待，又对pop重载了进行了超时处理。</p>
+<h2 id="定时器timer"><a href="#定时器timer" class="headerlink" title="*定时器timer*"></a><em><strong>*定时器timer*</strong></em></h2><h3 id="lst-timer-h"><a href="#lst-timer-h" class="headerlink" title="*lst_timer.h*"></a><em><strong>*lst_timer.h*</strong></em></h3><h3 id="lst-timer-cpp"><a href="#lst-timer-cpp" class="headerlink" title="*lst_timer.cpp*"></a><em><strong>*lst_timer.cpp*</strong></em></h3><h2 id="config-h"><a href="#config-h" class="headerlink" title="*config.h*"></a><em><strong>*config.h*</strong></em></h2><p>把我们命令行的各个输入参数封装成了一个类。里面包括了一个对我们主函数参数进行解析的void函数。用信号量判断是否有任务需要处理，sem.wait被唤醒就给请求队列解锁开始执行任务。</p>
+<h2 id="config-cpp"><a href="#config-cpp" class="headerlink" title="*config.cpp*"></a><em><strong>*config.cpp*</strong></em></h2><p>通过构造函数对我们主函数参数进行初始化</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps19.jpg" alt="img"> </p>
+<p>主函数传入参数的话就通过void函数:parse_arg(int argc, char*argv[])进行更改</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps20.jpg" alt="img"> </p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps21.jpg" alt="img"> </p>
+<h2 id="webserver-h"><a href="#webserver-h" class="headerlink" title="*webserver.h*"></a><em><strong>*webserver.h*</strong></em></h2><p>webserver的类里面包含了webserver.cpp中调用的函数，包括数据库相关，线程池相关，epoll_event相关，定时器相关的一些参数。</p>
+<h2 id="webserver-cpp"><a href="#webserver-cpp" class="headerlink" title="*webserver.cpp*"></a><em><strong>*webserver.cpp*</strong></em></h2><p>WebServer构造函数定义初始化开辟如最大文件描述符数量的数组，文件夹路径字符串数组，以及开辟定时器的最大监听文件描述符数量等；</p>
+<p><strong>初始化函数init：</strong></p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps22.jpg" alt="img"> </p>
+<p><strong>void trig_mode()</strong> 设置ET,LT模式 0，1，2，3对应LT+LT,LT+ET,ET+LT,ET+ET；</p>
+<p>**void WebServer::log_write()**设置日志系统，对日志进行一个初始化；先判断主函数参数0开启日志，1关闭日志，0同步写入，1异步写入。</p>
+<p>**void WebServer::sql_pool()**初始化数据库连接池、数据库读取表；</p>
+<p>**void WebServer::thread_pool()**：开辟线程池空间</p>
+<p>**void WebServer::eventListen():**网络编程基础步骤,bind&#x2F;listen等 初始化定时器最小超时单位</p>
+<p>epoll_event创建内核事件表数量为最大事件数，epoll_create创建监听实例参数5表示最大监听数量为5；以及处理一些定时器的参数。</p>
+<p><strong>void WebServer::timer(int connfd, struct sockaddr_in client_address)</strong></p>
+<p>初始化client_data数据</p>
+<p> 创建定时器，设置回调函数和超时时间，绑定用户数据，将定时器添加到链表中</p>
+<p><strong>void WebServer::adjust_timer(util_timer *timer)</strong></p>
+<p>&#x2F;&#x2F;若有数据传输，则将定时器往后延迟3个单位</p>
+<p>&#x2F;&#x2F;并对新的定时器在链表上的位置进行调整</p>
+<p><strong>void WebServer::deal_timer(util_timer *timer, int sockfd)</strong></p>
+<p><strong>bool WebServer::dealclinetdata()</strong></p>
+<p>对于不同触发模式进行不同的操作分为LT和ET，ET的话会在一个while（1）中执行</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps23.jpg" alt="img"> </p>
+<p><strong>bool WebServer::dealwithsignal(bool &amp;timeout, bool &amp;stop_server)</strong></p>
+<p><strong>void WebServer::dealwithread(int sockfd)</strong></p>
+<p><strong>void WebServer::dealwithwrite(int sockfd) 这两个处理读写事件的函数都根据</strong>1或0&#x3D;&#x3D; m_actormodel来确定reactor模式和proactor模式。</p>
+<p><strong>void WebServer::eventLoop()</strong></p>
+<p>epoll_wait返回阻塞等待处理的连接数目挨个遍历这些等待处理的文件描述符<img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps24.jpg" alt="img"> 然后if判断sockfd根据不同结构做不同事情：</p>
+<p>分以下5种情况：</p>
+<p> <strong>if (sockfd &#x3D;&#x3D; m_listenfd)：</strong></p>
+<p> <strong>else if (events[i].events &amp; (EPOLLRDHUP | EPOLLHUP | EPOLLERR)</strong>)</p>
+<p><strong>EPOLLRDHUP</strong> 表示读关闭<strong>EPOLLHUP 表示读写都关闭</strong></p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps25.jpg" alt="img"> </p>
+<p>这种情况表示服务器关闭连接，移除定时器</p>
+<pre><code> //处理信号
+</code></pre>
+<p>​    <strong>else if ((sockfd &#x3D;&#x3D; m_pipefd[0]) &amp;&amp; (events[i].events &amp; EPOLLIN))</strong></p>
+<p> &#x2F;&#x2F;处理客户连接上接收到的数据</p>
+<p>​      <strong>else if (events[i].events &amp; EPOLLIN)</strong></p>
+<p>​      {</p>
+<p>​        dealwithread(sockfd);&#x2F;&#x2F;检测到事件放入请求队列</p>
+<p>​      }</p>
+<p><strong>else if (events[i].events &amp; EPOLLOUT)</strong></p>
+<h2 id="main-cpp"><a href="#main-cpp" class="headerlink" title="*main.cpp*"></a><em><strong>*main.cpp*</strong></em></h2><p>首先在主函数中先定义我们要修改的数据库的信息，包括数据库名，用户名和密码名；</p>
+<p>用config类里面的void函数进行命令行的解析 其中包括我们可设置的参数，如：端口号，日志写入的同步异步模式，水平、边沿的触发组合模式、listenfd的触发模式、connfd的触发模式、优雅关闭连接的设置、数据库连接池的数量、线程池内线程数量、是否关闭日志、并发模式的选择；</p>
+<p>用WebServer类定义一个server对象，</p>
+<h1 id="为什么用ET模式"><a href="#为什么用ET模式" class="headerlink" title="*为什么用ET模式*"></a><em><strong>*为什么用ET模式*</strong></em></h1><p>因为ET模式的话相对来说比较高效，它只有当事件到来的时候才会触发，相比于LT模式减少了触发次数，但是编程会更加复杂一些。因为采取的是ET模式，所以说read，write，accept的时候都必须采用循环的方式，直到error&#x3D;&#x3D;E AGIN为止，防止漏读的情况。</p>
+<p>LT模式下accept调用有返回就可以马上建立连接了，然后epollwait等待下次通知。</p>
+<p>ET模式下，如果accpet调用有返回，除了建立当前这个连接外，不能马上就epoll_wait还需要继续循环accpet，直到返回-1，且errno&#x3D;&#x3D;EAGAIN。</p>
+<h1 id="介绍项目"><a href="#介绍项目" class="headerlink" title="*介绍项目*"></a><em><strong>*介绍项目*</strong></em></h1><h2 id="线程池中的线程数量是依据什么确定的？"><a href="#线程池中的线程数量是依据什么确定的？" class="headerlink" title="*线程池中的线程数量是依据什么确定的？*"></a><em><strong>*线程池中的线程数量是依据什么确定的？*</strong></em></h2><p>线程池中的线程数量最直接的限制因素是中央处理器(CPU)的处理器(processors&#x2F;cores)的数量</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps26.png" alt="img"></p>
+<p>：如果你的CPU是4-cores的，对于CPU密集型的任务(如视频剪辑等消耗CPU计算资源的任务)来说，那线程池中的线程数量最好也设置为4（或者+1防止其他因素造成的线程阻塞）；对于IO密集型的任务，一般要多于CPU的核数，因为线程间竞争的不是CPU的计算资源而是IO，IO的处理一般较慢，多于cores数的线程将为CPU争取更多的任务，不至在线程处理IO的过程造成CPU空闲导致资源浪费，公式：</p>
+<p><img src="file:///C:\Users\gjc\AppData\Local\Temp\ksohtml25684\wps27.png" alt="img"></p>
+<p>如果是IO密集型应用，则线程池大小设置为2N+1；</p>
+<p>如果是CPU密集型应用，则线程池大小设置为N+1；</p>
+<p>N代表CPU的核数。</p>
+<p>假设我的服务器是4核的，且一般进行大数据运算，cpu消耗较大，那么线程池数量设置为5为最优。</p>
+<p>（现在很多项目线程池滥用，注意分配线程数量，建议不要动态创建线程池，尽量将线程池配置固定，这样方便以后整体的把控和后期维护。每个核心业务线程池要互相独立，互不影响。）</p>
+<p>因为线程池配置过多，CPU密集型配置N+1甚至以下；</p>
+<p>IO密集型可能因为IO延迟严重，这时候就需要更多的线程进入等待，就不仅仅是2N+1。现在许多线程池是相互嵌套使用的，那么需要确定第一个线程池中线程数量，再根据使用场景的比例来配置下一个线程池中线程的数量。</p>
+<p>线程是很宝贵的资源，在解决问题的前提下（有时候可能预留一定的buffer），线程池数量配置越小越好。</p>
+<h2 id="为什么要做这个项目"><a href="#为什么要做这个项目" class="headerlink" title="*为什么要做这个项目*"></a><em><strong>*为什么要做这个项目*</strong></em></h2><p><strong>项目时间</strong></p>
+<p><strong>通过做这个项目也更加熟悉reactor、proactor模式、基本的网络编程方法、TCP&#x2F;IP协议和HTTP协议、C++的语法、多线程以及Linux下的各种工具的使用，对个人帮助很大。</strong></p>
+<h2 id="做项目时遇到的难点"><a href="#做项目时遇到的难点" class="headerlink" title="*做项目时遇到的难点*"></a><em><strong>*做项目时遇到的难点*</strong></em></h2><p>遇到的问题还是很多的，大大小小的都有，但是我印象比较深刻的是较大文件的传输</p>
+<p>在实际测试中发现，当请求小文件，也就是调用一次writev函数就可以将数据全部发送出去的时候，不会报错，此时不会再次进入while循环。</p>
+<p>一旦请求服务器文件较大文件时，需要多次调用writev函数，便会出现问题，不是文件显示不全，就是无法显示。</p>
+<p>对数据传输过程分析后，定位到writev的m_iv结构体成员有问题，每次传输后不会自动偏移文件指针和传输长度，还会按照原有指针和原有长度发送数据。</p>
+<p>根据前面的基础API分析，我们知道writev以顺序iov[0]，iov[1]至iov[iovcnt-1]从缓冲区中聚集输出数据。项目中，申请了2个iov，其中iov[0]为存储报文状态行的缓冲区，iov[1]指向资源文件指针。</p>
+<p>对上述代码做了修改如下：</p>
+<p>由于报文消息报头较小，第一次传输后，需要更新m_iv[1].iov_base和iov_len，			m_iv[0].iov_len置成0，只传输文件，不用传输响应消息头</p>
+<p>每次传输后都要更新下次传输的文件起始位置和长度</p>
+<p>更新后，大文件传输得到了解决。</p>
+<h2 id="l-简单介绍一下项目"><a href="#l-简单介绍一下项目" class="headerlink" title="l *简单介绍一下项目*"></a><strong>l</strong> <em><strong>*简单介绍一下项目*</strong></em></h2><p>我这个项目是一个linux系统下用C++实现的一个web服务器，他的主要功能呢是通过HTTP协议与客户端进行通信，并且可以接受并处理客户端的http请求，并且做出HTTP响应，返回给客户端请求的内容比如说文件网页等，假如出错的话返回一个Error信息。</p>
+<p><strong>工作流程</strong></p>
+<p>客户端这边流程</p>
+<p>显示客户端在自己浏览器直接输入我们的域名或者IP地址：端口号。浏览器会先将域名解析成IP地址根据IP地址和端口号找到服务器并且发送连接请求，这一过程要先通过三次握手建立与目标的链接，接着htttp先是生成了针对web服务器的请求报文，通过TCPIP协议发送到web服务器上。</p>
+<p>做的服务器流程</p>
+<p>web服务器会通过socket来监听用户的请求，用户尝试连接，服务器监听到用户的请求后会让这些请求排队等待接收，并且通知服务器有连接请求。这里主要是用了epoll来同时监听socket（listenfd），也就是是否用用户到来，和已经连接的用户的请求。虽然IO复用可以同时监听多个文件描述符，但是I&#x2F;O复用本身是阻塞的，所以如果多个文件描述符同时准备就绪的话，只能按顺序处理每一个文件描述符，针对这种情况为了提高效率，这部分使用了线程池来实现并发（多线程并发），为每一个就绪的文件描述符来分配一个工作线程（逻辑单元）来处理。</p>
+<p>epollwait发现accept接受并返回的文件描述符connfd上面有事件可读，主线程就把HTTP的请求报文读进socket的读缓存中，然后将这个任务对象（指针）插入线程池的请求队列中，</p>
+<p>工作线程会对请求报文进行分类 GET POST，然后进行不同的解析，这里用到了主从状态机实现解析（请求行  请求方法  URL  版本号   &#x2F;r&#x2F;n</p>
+<p>请求头 </p>
+<p>空行、r&#x2F;n</p>
+<p>请求数据  数据</p>
+<p>）一部分就将状态改变，来完成状态机的解析跳转。最后得到了一个完整的HTTP请求</p>
+<p>然后我们根据请求做出相应的回应，生成HTTP响应返还给用户，大概就是这样的流程</p>
+<p>在此之上为了避免链接服务器的非活动用户占用文件描述符导致资源的浪费，还添加了定时器通过周期性的触发信号对升序链表上的定时器进行处理，加超时的文件描述符都注销。</p>
+<p>还优化了日志系统记录服务器的运行状态，日志内部有一个阻塞队列</p>
+<p>，比如访问的数据以及错误信息等。</p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">John Doe</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://gjchou.github.io/2022/07/31/WebServer%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%A7%A3%E6%9E%90/">https://gjchou.github.io/2022/07/31/WebServer%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%A7%A3%E6%9E%90/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">John Doe</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            <span class="chip bg-color">无标签</span>
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <style>
+    #reward {
+        margin: 40px 0;
+        text-align: center;
+    }
+
+    #reward .reward-link {
+        font-size: 1.4rem;
+        line-height: 38px;
+    }
+
+    #reward .btn-floating:hover {
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    #rewardModal {
+        width: 320px;
+        height: 350px;
+    }
+
+    #rewardModal .reward-title {
+        margin: 15px auto;
+        padding-bottom: 5px;
+    }
+
+    #rewardModal .modal-content {
+        padding: 10px;
+    }
+
+    #rewardModal .close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        color: rgba(0, 0, 0, 0.5);
+        font-size: 1.3rem;
+        line-height: 20px;
+        cursor: pointer;
+    }
+
+    #rewardModal .close:hover {
+        color: #ef5350;
+        transform: scale(1.3);
+        -moz-transform:scale(1.3);
+        -webkit-transform:scale(1.3);
+        -o-transform:scale(1.3);
+    }
+
+    #rewardModal .reward-tabs {
+        margin: 0 auto;
+        width: 210px;
+    }
+
+    .reward-tabs .tabs {
+        height: 38px;
+        margin: 10px auto;
+        padding-left: 0;
+    }
+
+    .reward-content ul {
+        padding-left: 0 !important;
+    }
+
+    .reward-tabs .tabs .tab {
+        height: 38px;
+        line-height: 38px;
+    }
+
+    .reward-tabs .tab a {
+        color: #fff;
+        background-color: #ccc;
+    }
+
+    .reward-tabs .tab a:hover {
+        background-color: #ccc;
+        color: #fff;
+    }
+
+    .reward-tabs .wechat-tab .active {
+        color: #fff !important;
+        background-color: #22AB38 !important;
+    }
+
+    .reward-tabs .alipay-tab .active {
+        color: #fff !important;
+        background-color: #019FE8 !important;
+    }
+
+    .reward-tabs .reward-img {
+        width: 210px;
+        height: 210px;
+    }
+</style>
+
+<div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="/medias/reward/alipay.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="/medias/reward/wechat.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="far fa-dot-circle"></i>&nbsp;本篇
+            </div>
+            <div class="card">
+                <a href="/2022/07/31/WebServer%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%A7%A3%E6%9E%90/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/0.jpg" class="responsive-img" alt="">
+                        
+                        <span class="card-title"></span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-07-31
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            John Doe
+                            
+                        </span>
+                    </div>
+                </div>
+
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                本篇&nbsp;<i class="far fa-dot-circle"></i>
+            </div>
+            <div class="card">
+                <a href="/2022/07/31/WebServer%E6%9C%8D%E5%8A%A1%E5%99%A8%E8%A7%A3%E6%9E%90/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/0.jpg" class="responsive-img" alt="">
+                        
+                        <span class="card-title"></span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2022-07-31
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-user fa-fw"></i>
+                            John Doe
+                            
+                        </span>
+                    </div>
+                </div>
+
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+        <link rel="stylesheet" href="/libs/aplayer/APlayer.min.css">
+<style>
+    .aplayer .aplayer-lrc p {
+        
+        display: none;
+        
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 16px !important;
+    }
+
+    .aplayer .aplayer-lrc p.aplayer-lrc-current {
+        
+        display: none;
+        
+        font-size: 15px;
+        color: #42b983;
+    }
+
+    
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body {
+        left: -66px !important;
+    }
+
+    .aplayer.aplayer-fixed.aplayer-narrow .aplayer-body:hover {
+        left: 0px !important;
+    }
+
+    
+</style>
+<div class="">
+    
+    <div class="row">
+        <meting-js class="col l8 offset-l2 m10 offset-m1 s12"
+                   server="netease"
+                   type="playlist"
+                   id="503838841"
+                   fixed='true'
+                   autoplay='false'
+                   theme='#42b983'
+                   loop='all'
+                   order='random'
+                   preload='auto'
+                   volume='0.7'
+                   list-folded='true'
+        >
+        </meting-js>
+    </div>
+</div>
+
+<script src="/libs/aplayer/APlayer.min.js"></script>
+<script src="/libs/aplayer/Meting.min.js"></script>
+
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2019-2022</span>
+            
+            <a href="/about" target="_blank">John Doe</a>
+            |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a>
+            |&nbsp;Theme&nbsp;<a href="https://github.com/blinkfox/hexo-theme-matery" target="_blank">Matery</a>
+            <br>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/blinkfox" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:1181062873@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=1181062873" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 1181062873" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="/atom.xml" class="tooltipped" target="_blank" data-tooltip="RSS 订阅" data-position="top" data-delay="50">
+        <i class="fas fa-rss"></i>
+    </a>
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+
+    
+
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+    
+
+     
+        <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+        <script src="/libs/others/TencentCaptcha.js"></script>
+        <button id="TencentCaptcha" data-appid="xxxxxxxxxx" data-cbfn="callback" type="button" hidden></button>
+    
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>
